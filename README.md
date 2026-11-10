@@ -5,6 +5,7 @@ kaç dakikada gittiğini gösteren kişisel konum günlüğü (Android).
 
 - Konum dururken 5 dakikada, hareket halindeyken 1 dakikada bir kaydedilir (Ayarlar'dan değiştirilebilir).
 - Kayıtlar otomatik olarak **ziyaretlere** ve aradaki **yolculuklara** ayrılır.
+- Rotalar Strava tarzı çizilir: hareket halindeyken dakikada bir alınan waypoint'lerden geçen turuncu çizgi, yeşil başlangıç ve gri bitiş noktası.
 - Yerlere isim verilebilir ("Ev", "İş"); istatistikler yer ve güzergâh bazında toplanır.
 - Tüm veriler yalnızca telefonda durur. İnternet yalnızca harita karoları ve adres adı için kullanılır.
 

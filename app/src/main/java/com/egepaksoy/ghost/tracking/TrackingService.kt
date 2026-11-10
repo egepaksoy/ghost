@@ -42,6 +42,8 @@ class TrackingService : Service() {
     private var lastStored = 0L
     private var lastHeard = 0L
     private var started = false
+    /** Fixes heard but not written yet, so the first minutes of a trip can be filled in once it starts. */
+    private val unsaved = ArrayDeque<Fix>()
 
     private val heartbeat = object : Runnable {
         override fun run() {
@@ -112,9 +114,23 @@ class TrackingService : Service() {
         val isMoving = if (fix.accuracy <= 150f) policy.onFix(fix) else wasMoving
         val due = time - lastStored >= currentIntervalMs() * 8 / 10
         if (due || isMoving != wasMoving) {
+            if (isMoving && !wasMoving) {
+                // Just left a place: keep the fixes heard on the way out as route waypoints too.
+                val gap = prefs.movingSec * 1000L * 8 / 10
+                for (u in unsaved) {
+                    if (u.time > lastStored + gap && u.time < time - gap / 2) {
+                        db.insertPoint(u)
+                        lastStored = u.time
+                    }
+                }
+            }
+            unsaved.clear()
             db.insertPoint(fix)
             lastStored = time
             (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(NOTIFICATION_ID, notification())
+        } else if (fix.accuracy <= 100f) {
+            unsaved.addLast(fix)
+            while (unsaved.isNotEmpty() && time - unsaved.first().time > 15 * 60_000L) unsaved.removeFirst()
         }
         if (isMoving != wasMoving) applyRequest()
     }

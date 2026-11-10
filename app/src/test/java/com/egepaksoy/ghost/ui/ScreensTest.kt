@@ -1,11 +1,15 @@
 package com.egepaksoy.ghost.ui
 
 import android.content.Context
+import android.os.Looper
+import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.junit4.createEmptyComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToIndex
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -15,11 +19,14 @@ import com.github.takahirom.roborazzi.captureScreenRoboImage
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 import org.robolectric.annotation.GraphicsMode
+import kotlin.math.PI
+import kotlin.math.sin
 
 /**
- * Opens the real app with a made-up day of data, walks through every screen and saves a
+ * Opens the real app with two made-up days of data, walks through every screen and saves a
  * screenshot of each to app/build/outputs/screens. Fails if any screen crashes.
  */
 @RunWith(AndroidJUnit4::class)
@@ -33,32 +40,43 @@ class ScreensTest {
     private fun seed(ctx: Context) {
         val db = Db.get(ctx)
         val now = System.currentTimeMillis()
-        val home = 41.0200 to 29.0100
-        val work = 41.0650 to 28.9900
-        val cafe = 41.0500 to 29.0300
+        val home = 41.0220 to 29.0150
+        val work = 41.0480 to 29.0060
+        val cafe = 41.0440 to 29.0110
         fun stay(from: Long, to: Long, p: Pair<Double, Double>) {
             var t = from
             while (t <= to) { db.insertPoint(Fix(t, p.first, p.second, 12f)); t += 5 * min }
         }
-        fun drive(from: Long, to: Long, a: Pair<Double, Double>, b: Pair<Double, Double>) {
+        // A wiggly path, one fix per minute, like a real road.
+        fun move(from: Long, to: Long, a: Pair<Double, Double>, b: Pair<Double, Double>, bend: Double) {
             val n = ((to - from) / min).toInt()
-            for (i in 1 until n) db.insertPoint(
-                Fix(from + i * min, a.first + (b.first - a.first) * i / n, a.second + (b.second - a.second) * i / n, 8f)
-            )
+            for (i in 1 until n) {
+                val f = i.toDouble() / n
+                val wobble = sin(f * PI) * bend + sin(i * 1.3) * 0.00035
+                db.insertPoint(Fix(from + i * min, a.first + (b.first - a.first) * f + wobble * 0.4, a.second + (b.second - a.second) * f - wobble, 8f))
+            }
         }
-        // Yesterday and today share the same commute so the statistics have something to average.
         for (dayBack in listOf(1, 0)) {
             val end = now - dayBack * 24 * 60 * min
+            val arrive = if (dayBack == 0) 392 else 385
             stay(end - 600 * min, end - 420 * min, home)
-            drive(end - 420 * min, end - (if (dayBack == 0) 392 else 385) * min, home, work)
-            stay(end - (if (dayBack == 0) 392 else 385) * min, end - 150 * min, work)
-            drive(end - 150 * min, end - 135 * min, work, cafe)
+            move(end - 420 * min, end - arrive * min, home, work, 0.006)
+            stay(end - arrive * min, end - 150 * min, work)
+            move(end - 150 * min, end - 135 * min, work, cafe, 0.0008)
             stay(end - 135 * min, end - 70 * min, cafe)
-            drive(end - 70 * min, end - 45 * min, cafe, home)
+            move(end - 70 * min, end - 45 * min, cafe, home, -0.004)
             stay(end - 45 * min, end, home)
         }
         db.addPlace("Ev", home.first, home.second, 100.0)
         db.addPlace("İş", work.first, work.second, 100.0)
+    }
+
+    /** Gives the map a few real seconds to download tiles, if the network allows it. */
+    private fun settleMap(seconds: Int = 8) {
+        repeat(seconds * 2) {
+            Thread.sleep(500)
+            shadowOf(Looper.getMainLooper()).idle()
+        }
     }
 
     private fun shot(name: String) {
@@ -70,28 +88,43 @@ class ScreensTest {
     fun everyScreenOpens() {
         seed(ApplicationProvider.getApplicationContext())
         ActivityScenario.launch(MainActivity::class.java).use {
-            rule.waitUntil(5_000) { rule.onAllNodesWithText("Ev").fetchSemanticsNodes().isNotEmpty() }
+            rule.waitUntil(5_000) { rule.onAllNodesWithText("Yolda").fetchSemanticsNodes().isNotEmpty() }
+            settleMap()
             shot("1-gunluk")
-            rule.onNodeWithText("Harita").performClick()
-            shot("2-harita")
-            rule.onNodeWithText("Yerler").performClick()
-            shot("3-yerler")
+            rule.onNode(hasScrollAction()).performScrollToIndex(5)
+            shot("1a-gunluk-zaman-cizelgesi")
+
+            rule.onAllNodesWithText("haritada gör", substring = true).onFirst().performClick()
+            settleMap()
+            shot("2a-harita-yolculuk")
+            rule.onNodeWithContentDescription("Tüm günü göster").performClick()
+            settleMap(15)
+            shot("2b-harita-gun")
+
             rule.onNodeWithText("İstatistik").performClick()
             rule.waitUntil(5_000) { rule.onAllNodesWithText("Yolculuk süreleri").fetchSemanticsNodes().isNotEmpty() }
-            shot("4-istatistik")
-            rule.onNodeWithText("Ayarlar").performClick()
-            shot("5-ayarlar")
-            rule.onNodeWithText("Günlük").performClick()
+            shot("3-istatistik")
+            rule.onNodeWithText("Yerler").performClick()
             rule.waitForIdle()
+            shot("4-yerler")
+
+            rule.onNodeWithText("Günlük").performClick()
+            rule.onNodeWithContentDescription("Ayarlar").performClick()
+            shot("5-ayarlar")
+            rule.onNodeWithContentDescription("Geri").performClick()
+
             rule.onNodeWithText("Bugün").performClick()
-            shot("1c-tarih")
+            shot("6-tarih")
             rule.onNodeWithText("İptal").performClick()
+
             // Last step: once the text field has focus this environment never reports "idle"
             // (blinking cursor), so take the picture without waiting.
+            rule.onNode(hasScrollAction()).performScrollToIndex(6)
+            rule.waitForIdle()
             rule.mainClock.autoAdvance = false
-            rule.onAllNodesWithText("Adsız yer").onFirst().performClick()
+            rule.onAllNodesWithText("İsim vermek için dokun").onFirst().performClick()
             rule.mainClock.advanceTimeBy(600)
-            captureScreenRoboImage("build/outputs/screens/1b-isim-ver.png")
+            captureScreenRoboImage("build/outputs/screens/7-isim-ver.png")
         }
     }
 }

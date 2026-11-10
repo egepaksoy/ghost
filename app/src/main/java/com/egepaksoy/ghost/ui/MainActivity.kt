@@ -12,19 +12,16 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -33,10 +30,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -46,12 +39,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.path
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -64,18 +52,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent { GhostTheme { App() } }
     }
-}
-
-@Composable
-fun GhostTheme(content: @Composable () -> Unit) {
-    val dark = isSystemInDarkTheme()
-    val ctx = LocalContext.current
-    val scheme = when {
-        Build.VERSION.SDK_INT >= 31 -> if (dark) dynamicDarkColorScheme(ctx) else dynamicLightColorScheme(ctx)
-        dark -> darkColorScheme()
-        else -> lightColorScheme()
-    }
-    MaterialTheme(colorScheme = scheme, content = content)
 }
 
 /** What the phone currently allows the app to do. */
@@ -98,14 +74,6 @@ class Actions(
     val requestBattery: () -> Unit,
     val openAppSettings: () -> Unit,
 )
-
-private val BarsIcon: ImageVector = ImageVector.Builder("Bars", 24.dp, 24.dp, 24f, 24f).apply {
-    path(fill = SolidColor(Color.Black)) {
-        for ((x, top) in listOf(4f to 12f, 10.5f to 5f, 17f to 9f)) {
-            moveTo(x, top); horizontalLineTo(x + 3.5f); verticalLineTo(20f); horizontalLineTo(x); close()
-        }
-    }
-}.build()
 
 @SuppressLint("BatteryLife")
 @Composable
@@ -162,17 +130,19 @@ fun App(vm: AppViewModel = viewModel()) {
     }
 
     var tab by rememberSaveable { mutableIntStateOf(0) }
+    var settings by rememberSaveable { mutableStateOf(false) }
+    BackHandler(enabled = settings) { settings = false }
     val tabs = listOf(
-        "Günlük" to Icons.Default.DateRange,
-        "Harita" to Icons.Default.LocationOn,
+        "Günlük" to GIcons.Timeline,
+        "Harita" to GIcons.Map,
+        "İstatistik" to GIcons.Bars,
         "Yerler" to Icons.Default.Place,
-        "İstatistik" to BarsIcon,
-        "Ayarlar" to Icons.Default.Settings,
     )
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(snackbar) },
         bottomBar = {
-            NavigationBar {
+            if (!settings) NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
                 tabs.forEachIndexed { i, (label, icon) ->
                     NavigationBarItem(
                         selected = tab == i, onClick = { tab = i },
@@ -184,12 +154,15 @@ fun App(vm: AppViewModel = viewModel()) {
         },
     ) { pad ->
         Box(Modifier.fillMaxSize().padding(pad)) {
-            when (tab) {
-                0 -> TimelineScreen(vm, perms, actions)
+            if (settings) SettingsScreen(vm, perms, actions, onBack = { settings = false })
+            else when (tab) {
+                0 -> TimelineScreen(vm, perms, actions, openSettings = { settings = true }, openMap = { trip ->
+                    vm.focusTrip.value = trip
+                    tab = 1
+                })
                 1 -> MapScreen(vm)
-                2 -> PlacesScreen(vm)
-                3 -> StatsScreen(vm)
-                else -> SettingsScreen(vm, perms, actions)
+                2 -> StatsScreen(vm)
+                else -> PlacesScreen(vm)
             }
         }
     }

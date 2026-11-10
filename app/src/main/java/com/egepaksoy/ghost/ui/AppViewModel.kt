@@ -36,7 +36,7 @@ import java.util.concurrent.ConcurrentHashMap
 data class DayData(val date: LocalDate, val items: List<TimelineItem>)
 data class StatsData(
     val days: Int, val places: List<PlaceTotal>, val routes: List<RouteStat>,
-    val travelMs: Long, val distanceM: Double,
+    val travelMs: Long, val distanceM: Double, val trips: Int,
 )
 
 class AppViewModel(app: Application) : AndroidViewModel(app) {
@@ -52,6 +52,8 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     /** Street names looked up for unnamed spots, by spot key. */
     val addresses = MutableStateFlow<Map<String, String>>(emptyMap())
     val message = MutableStateFlow<String?>(null)
+    /** A trip (by its start time) the map should zoom to when it opens. */
+    val focusTrip = MutableStateFlow<Long?>(null)
 
     private val minute = flow { while (true) { emit(Unit); delay(60_000) } }
     private fun <T> kotlinx.coroutines.flow.Flow<T>.state(initial: T) =
@@ -66,6 +68,10 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
 
     val stats = combine(statsDays, db.version, minute) { n, _, _ -> n }
         .map { loadStats(it) }.flowOn(Dispatchers.Default).state(null)
+
+    /** Time spent at each spot over the last 30 days, for the places screen. */
+    val placeSummary = combine(db.version, minute) { _, _ -> }
+        .map { loadStats(30).places }.flowOn(Dispatchers.Default).state(emptyList())
 
     private fun startOf(d: LocalDate) = d.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
@@ -85,7 +91,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         val trips = items.filterIsInstance<TripItem>()
         return StatsData(
             days, Analyzer.placeTotals(items), Analyzer.routes(items),
-            trips.sumOf { it.durationMs }, trips.sumOf { it.trip.distanceM },
+            trips.sumOf { it.durationMs }, trips.sumOf { it.trip.distanceM }, trips.size,
         )
     }
 
