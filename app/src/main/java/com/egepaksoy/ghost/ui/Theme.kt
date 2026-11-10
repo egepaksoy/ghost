@@ -54,8 +54,8 @@ private val AppType = Typography(
 )
 
 @Composable
-fun GhostTheme(content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = if (isSystemInDarkTheme()) Dark else Light, typography = AppType, content = content)
+fun GhostTheme(dark: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
+    MaterialTheme(colorScheme = if (dark) Dark else Light, typography = AppType, content = content)
 }
 
 /** Strava-style route colours. */

@@ -69,10 +69,10 @@ fun StatsScreen(vm: AppViewModel) {
             Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Tile(GIcons.Clock, "Yolda geçen", Fmt.duration(s.travelMs), Modifier.weight(1f))
-                    Tile(GIcons.Route, "Mesafe", Fmt.distance(s.distanceM), Modifier.weight(1f))
+                    Tile(GIcons.Map, "Mesafe", Fmt.distance(s.distanceM), Modifier.weight(1f))
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Tile(GIcons.Car, "Yolculuk", "${s.trips}", Modifier.weight(1f))
+                    Tile(GIcons.Route, "Yolculuk", "${s.trips}", Modifier.weight(1f))
                     Tile(Icons.Default.Place, "Farklı yer", "${s.places.size}", Modifier.weight(1f))
                 }
             }

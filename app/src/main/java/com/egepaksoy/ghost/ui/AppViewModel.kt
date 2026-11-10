@@ -18,6 +18,7 @@ import com.egepaksoy.ghost.data.Db
 import com.egepaksoy.ghost.data.Exporter
 import com.egepaksoy.ghost.data.Prefs
 import com.egepaksoy.ghost.tracking.TrackingService
+import com.egepaksoy.ghost.widget.Widgets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,6 +48,7 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
     val day = MutableStateFlow(LocalDate.now())
     val statsDays = MutableStateFlow(7)
     val tracking = MutableStateFlow(prefs.tracking)
+    val themeMode = MutableStateFlow(prefs.theme)
     val movingSec = MutableStateFlow(prefs.movingSec)
     val stationarySec = MutableStateFlow(prefs.stationarySec)
     /** Street names looked up for unnamed spots, by spot key. */
@@ -124,6 +126,12 @@ class AppViewModel(app: Application) : AndroidViewModel(app) {
         tracking.value = on
         val ctx = getApplication<Application>()
         if (on) TrackingService.start(ctx) else TrackingService.stop(ctx)
+        Widgets.requestUpdate(ctx)
+    }
+
+    fun setTheme(mode: Int) {
+        prefs.theme = mode
+        themeMode.value = mode
     }
 
     fun setIntervals(moving: Int, stationary: Int) {

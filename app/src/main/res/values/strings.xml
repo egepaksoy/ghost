@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_detail_label">Ghost · Günün rotası</string>
+    <string name="widget_detail_desc">Bugünkü rotan haritada, günün özeti ve şu anki durumun</string>
+    <string name="widget_status_label">Ghost · Şu an</string>
+    <string name="widget_status_desc">Bir yerdeysen bekleme süren, yoldaysan yolculuk süren</string>
+    <string name="widget_summary_label">Ghost · Bugün</string>
+    <string name="widget_summary_desc">Bugün kaç yere gittin, yolda ne kadar kaldın</string>
+</resources>

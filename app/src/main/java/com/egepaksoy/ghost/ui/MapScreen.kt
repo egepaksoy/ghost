@@ -125,7 +125,7 @@ private fun DaySheet(items: List<com.egepaksoy.ghost.core.TimelineItem>, address
             ) {
                 RouteThumb(it.trip.path, Modifier.size(30.dp))
                 Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
-                    Text("${Fmt.tripMode(it.trip)} · ${Fmt.duration(it.durationMs)}", style = MaterialTheme.typography.titleSmall, color = RouteOrange)
+                    Text("Yolculuk · ${Fmt.duration(it.durationMs)}", style = MaterialTheme.typography.titleSmall, color = RouteOrange)
                     Text("${Fmt.distance(it.trip.distanceM)} · ${Fmt.waypoints(it.trip)} waypoint", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 Text("Gör", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
@@ -137,9 +137,9 @@ private fun DaySheet(items: List<com.egepaksoy.ghost.core.TimelineItem>, address
 @Composable
 private fun TripDetail(t: TripItem, addresses: Map<String, String>, badges: Map<String, String>, onClose: () -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        IconCircle(if (Fmt.isWalk(t.trip)) GIcons.Walk else GIcons.Car, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer, 36.dp)
+        IconCircle(GIcons.Route, MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer, 36.dp)
         Column(Modifier.weight(1f).padding(horizontal = 12.dp)) {
-            Text(Fmt.tripMode(t.trip), style = MaterialTheme.typography.labelLarge, color = RouteOrange)
+            Text("Yolculuk", style = MaterialTheme.typography.labelLarge, color = RouteOrange)
             Text(
                 (if (t.trip.uncertain) "≈ " else "") + Fmt.duration(t.durationMs),
                 style = MaterialTheme.typography.headlineMedium,

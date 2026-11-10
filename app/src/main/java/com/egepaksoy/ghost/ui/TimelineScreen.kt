@@ -346,13 +346,13 @@ private fun TripEntry(item: TripItem, first: Boolean, last: Boolean, onClick: ()
                 )
             }
             IconCircle(
-                if (Fmt.isWalk(t)) GIcons.Walk else GIcons.Car,
+                GIcons.Route,
                 MaterialTheme.colorScheme.tertiaryContainer, MaterialTheme.colorScheme.onTertiaryContainer, 28.dp,
             )
         }
         Column(Modifier.weight(1f).align(Alignment.CenterVertically).padding(start = 4.dp, top = 10.dp, bottom = 10.dp)) {
             Text(
-                (if (t.uncertain) "≈ " else "") + Fmt.tripMode(t) + " · " + Fmt.duration(item.durationMs) +
+                (if (t.uncertain) "≈ " else "") + "Yolculuk · " + Fmt.duration(item.durationMs) +
                     if (t.ongoing) " · sürüyor" else "",
                 style = MaterialTheme.typography.titleSmall,
             )

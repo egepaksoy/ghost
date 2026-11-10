@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item><shape><solid android:color="@color/widget_track" /><corners android:radius="4dp" /></shape></item>
+    <item android:right="200dp"><shape><solid android:color="#FF9A6234" /><corners android:topLeftRadius="4dp" android:bottomLeftRadius="4dp" /></shape></item>
+    <item android:left="100dp" android:right="190dp"><shape><solid android:color="@color/widget_route" /></shape></item>
+    <item android:left="110dp" android:right="120dp"><shape><solid android:color="@color/widget_accent" /></shape></item>
+    <item android:left="180dp" android:right="110dp"><shape><solid android:color="@color/widget_route" /></shape></item>
+</layer-list>

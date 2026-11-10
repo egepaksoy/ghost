@@ -47,8 +47,6 @@ object Fmt {
         return if (h > 0) t.distanceM / 1000 / h else 0.0
     }
 
-    fun isWalk(t: Trip) = speedKmh(t) < 6.5
-    fun tripMode(t: Trip) = if (isWalk(t)) "Yürüyüş" else "Araçla"
     fun waypoints(t: Trip) = (t.path.size - 2).coerceAtLeast(0)
 
     fun spot(s: Spot?, addresses: Map<String, String>): String =

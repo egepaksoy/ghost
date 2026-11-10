@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performScrollToIndex
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
@@ -111,6 +112,18 @@ class ScreensTest {
             rule.onNodeWithText("Günlük").performClick()
             rule.onNodeWithContentDescription("Ayarlar").performClick()
             shot("5-ayarlar")
+            // Dark theme from the settings: check the main screens in it too.
+            rule.onNodeWithText("Koyu").performScrollTo().performClick()
+            shot("5b-ayarlar-koyu")
+            rule.onNodeWithContentDescription("Geri").performClick()
+            rule.waitForIdle()
+            shot("1-gunluk-koyu")
+            rule.onNodeWithText("İstatistik").performClick()
+            rule.waitUntil(5_000) { rule.onAllNodesWithText("Yolculuk süreleri").fetchSemanticsNodes().isNotEmpty() }
+            shot("3-istatistik-koyu")
+            rule.onNodeWithText("Günlük").performClick()
+            rule.onNodeWithContentDescription("Ayarlar").performClick()
+            rule.onNodeWithText("Açık").performScrollTo().performClick()
             rule.onNodeWithContentDescription("Geri").performClick()
 
             rule.onNodeWithText("Bugün").performClick()

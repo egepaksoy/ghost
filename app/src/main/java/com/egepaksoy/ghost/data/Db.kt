@@ -13,7 +13,12 @@ class Db private constructor(ctx: Context) : SQLiteOpenHelper(ctx, "ghost.db", n
 
     /** Bumped on every write so the UI knows when to reload. */
     val version = MutableStateFlow(0L)
-    private fun changed() { version.value++ }
+    /** Called after every write (used to refresh home screen widgets). */
+    @Volatile var onChange: (() -> Unit)? = null
+    private fun changed() {
+        version.value++
+        onChange?.invoke()
+    }
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL("CREATE TABLE points(id INTEGER PRIMARY KEY, time INTEGER NOT NULL, lat REAL NOT NULL, lon REAL NOT NULL, acc REAL NOT NULL)")

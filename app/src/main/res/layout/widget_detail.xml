@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_bg"
+    android:orientation="vertical"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Bugün" android:textColor="@color/widget_text" android:textSize="15sp" android:textStyle="bold" />
+        <TextView android:id="@+id/status" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="end" android:maxLines="1" android:text="" android:textColor="@color/widget_accent" android:textSize="11sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="8dp"
+        android:layout_weight="1">
+
+        <ImageView
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/widget_map_bg"
+            android:clipToOutline="true"
+            android:contentDescription="Günün rotası"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/map_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Bugün henüz bir yere gitmedin"
+            android:textColor="@color/widget_muted"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:padding="5dp"
+            android:text="© OpenStreetMap"
+            android:textColor="#FF555555"
+            android:textSize="8sp" />
+    </FrameLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="0.7" android:orientation="vertical">
+            <TextView android:id="@+id/stat_places" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:maxLines="1" android:textColor="@color/widget_text" android:textSize="18sp" android:fontFamily="sans-serif-medium" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Yer" android:textColor="@color/widget_muted" android:textSize="11sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.2" android:orientation="vertical">
+            <TextView android:id="@+id/stat_travel" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:maxLines="1" android:textColor="@color/widget_text" android:textSize="18sp" android:fontFamily="sans-serif-medium" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Yolda" android:textColor="@color/widget_muted" android:textSize="11sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+            <TextView android:id="@+id/stat_dist" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="—" android:maxLines="1" android:textColor="@color/widget_text" android:textSize="18sp" android:fontFamily="sans-serif-medium" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Mesafe" android:textColor="@color/widget_muted" android:textSize="11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/now_icon"
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:contentDescription="@null"
+            android:src="@drawable/widget_icon_idle" />
+
+        <TextView
+            android:id="@+id/now_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="—"
+            android:textColor="@color/widget_text"
+            android:textSize="13sp" />
+
+        <Chronometer
+            android:id="@+id/now_chrono"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:fontFamily="sans-serif-medium"
+            android:textColor="@color/widget_text"
+            android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/now_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:fontFamily="sans-serif-medium"
+            android:text=""
+            android:textColor="@color/widget_muted"
+            android:textSize="13sp"
+            android:visibility="gone" />
+    </LinearLayout>
+</LinearLayout>

@@ -10,6 +10,11 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("tracking", false)
         set(v) = sp.edit().putBoolean("tracking", v).apply()
 
+    /** 0 = follow the phone, 1 = light, 2 = dark. */
+    var theme: Int
+        get() = sp.getInt("theme", 0)
+        set(v) = sp.edit().putInt("theme", v).apply()
+
     /** Seconds between records while moving. */
     var movingSec: Int
         get() = sp.getInt("movingSec", 60)

@@ -12,6 +12,9 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.DisposableEffect
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -50,7 +53,21 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContent { GhostTheme { App() } }
+        setContent {
+            val vm: AppViewModel = viewModel()
+            val mode by vm.themeMode.collectAsStateWithLifecycle()
+            val dark = when (mode) {
+                1 -> false
+                2 -> true
+                else -> isSystemInDarkTheme()
+            }
+            DisposableEffect(dark) {
+                val style = SystemBarStyle.auto(android.graphics.Color.TRANSPARENT, android.graphics.Color.TRANSPARENT) { dark }
+                enableEdgeToEdge(style, style)
+                onDispose {}
+            }
+            GhostTheme(dark) { App(vm) }
+        }
     }
 }
 
@@ -73,6 +90,7 @@ class Actions(
     val requestBackground: () -> Unit,
     val requestBattery: () -> Unit,
     val openAppSettings: () -> Unit,
+    val openNotificationSettings: () -> Unit,
 )
 
 @SuppressLint("BatteryLife")
@@ -99,14 +117,8 @@ fun App(vm: AppViewModel = viewModel()) {
     val actions = remember {
         Actions(
             startTracking = {
-                if (readPerms(ctx).fine && readPerms(ctx).notifications) vm.setTracking(true)
-                else fineLauncher.launch(
-                    buildList {
-                        add(Manifest.permission.ACCESS_FINE_LOCATION)
-                        add(Manifest.permission.ACCESS_COARSE_LOCATION)
-                        if (Build.VERSION.SDK_INT >= 33) add(Manifest.permission.POST_NOTIFICATIONS)
-                    }.toTypedArray()
-                )
+                if (readPerms(ctx).fine) vm.setTracking(true)
+                else fineLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
             },
             stopTracking = { vm.setTracking(false) },
             requestBackground = {
@@ -120,6 +132,11 @@ fun App(vm: AppViewModel = viewModel()) {
                 }
             },
             openAppSettings = ::openAppSettings,
+            openNotificationSettings = {
+                try {
+                    ctx.startActivity(Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, ctx.packageName))
+                } catch (e: Exception) { openAppSettings() }
+            },
         )
     }
 

@@ -7,6 +7,8 @@ kaç dakikada gittiğini gösteren kişisel konum günlüğü (Android).
 - Kayıtlar otomatik olarak **ziyaretlere** ve aradaki **yolculuklara** ayrılır.
 - Rotalar Strava tarzı çizilir: hareket halindeyken dakikada bir alınan waypoint'lerden geçen turuncu çizgi, yeşil başlangıç ve gri bitiş noktası.
 - Yerlere isim verilebilir ("Ev", "İş"); istatistikler yer ve güzergâh bazında toplanır.
+- Üç ana ekran widget'ı: günün rotası haritada (detaylı), "şu an" (bekleme ya da yolculuk süresi, canlı sayaç) ve günün özeti.
+- Açık / koyu / sistem teması.
 - Tüm veriler yalnızca telefonda durur. İnternet yalnızca harita karoları ve adres adı için kullanılır.
 
 ## Kurulum
@@ -17,6 +19,11 @@ kaç dakikada gittiğini gösteren kişisel konum günlüğü (Android).
    konum izni → "Her zaman izin ver" → pil kısıtlamasını kaldır.
 
 Yeni sürümler eskisinin üzerine kurulur; kayıtlar silinmez.
+
+Widget eklemek için ana ekranda boş bir yere basılı tut → Widget'lar → Ghost.
+
+Android arka planda konum alan uygulamalara bildirim göstermeyi zorunlu tutar. Ghost'un bildirimi sessiz ve
+küçültülmüştür; tamamen gizlemek için Ayarlar → İzinler → "Kayıt bildirimini gizle" → Kapat. Kayıt etkilenmez.
 
 ## Geliştirme
 

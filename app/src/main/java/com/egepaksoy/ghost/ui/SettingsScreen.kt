@@ -55,6 +55,7 @@ fun SettingsScreen(vm: AppViewModel, perms: Perms, actions: Actions, onBack: () 
     val stationarySec by vm.stationarySec.collectAsStateWithLifecycle()
     val count by vm.pointCount.collectAsStateWithLifecycle()
     val lastFix by vm.lastFix.collectAsStateWithLifecycle()
+    val theme by vm.themeMode.collectAsStateWithLifecycle()
     var confirmDelete by remember { mutableStateOf(false) }
     val ctx = LocalContext.current
     val version = remember { runCatching { ctx.packageManager.getPackageInfo(ctx.packageName, 0).versionName }.getOrNull() ?: "" }
@@ -110,12 +111,23 @@ fun SettingsScreen(vm: AppViewModel, perms: Perms, actions: Actions, onBack: () 
                 }
             }
 
+            Group("Görünüm") {
+                Column(Modifier.padding(16.dp)) {
+                    Text("Tema", style = MaterialTheme.typography.titleSmall)
+                    Choice(listOf(0 to "Sistem", 1 to "Açık", 2 to "Koyu"), theme) { vm.setTheme(it) }
+                }
+            }
+
             Group("İzinler") {
                 Perm(Icons.Default.LocationOn, "Konum", "Konumunu kaydetmek için", perms.fine, actions.startTracking)
                 HorizontalDivider(Modifier.padding(start = 70.dp), color = MaterialTheme.colorScheme.outlineVariant)
                 Perm(Icons.Default.LocationOn, "Her zaman izin ver", "Uygulama kapalıyken kayıt için", perms.background, actions.requestBackground)
                 HorizontalDivider(Modifier.padding(start = 70.dp), color = MaterialTheme.colorScheme.outlineVariant)
-                Perm(Icons.Default.Notifications, "Bildirim", "Kaydın sürdüğünü gösterir", perms.notifications, actions.openAppSettings)
+                Perm(
+                    Icons.Default.Notifications, "Kayıt bildirimini gizle",
+                    if (perms.notifications) "Sessiz ve küçük. Kapatırsan kayıt sürer, bildirim görünmez." else "Bildirim gizli",
+                    !perms.notifications, actions.openNotificationSettings, button = "Kapat",
+                )
                 HorizontalDivider(Modifier.padding(start = 70.dp), color = MaterialTheme.colorScheme.outlineVariant)
                 Perm(GIcons.Battery, "Pil kısıtlaması yok", "Telefon uygulamayı uyutmasın", perms.batteryExempt, actions.requestBattery)
             }
@@ -177,7 +189,7 @@ private fun Choice(options: List<Pair<Int, String>>, value: Int, onPick: (Int) -
 }
 
 @Composable
-private fun Perm(icon: ImageVector, title: String, text: String, ok: Boolean, onClick: () -> Unit) {
+private fun Perm(icon: ImageVector, title: String, text: String, ok: Boolean, onClick: () -> Unit, button: String = "Aç") {
     Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp), verticalAlignment = Alignment.CenterVertically) {
         IconCircle(icon, MaterialTheme.colorScheme.surfaceContainerHigh, MaterialTheme.colorScheme.onSurfaceVariant)
         Column(Modifier.weight(1f).padding(horizontal = 14.dp)) {
@@ -185,7 +197,7 @@ private fun Perm(icon: ImageVector, title: String, text: String, ok: Boolean, on
             Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         if (ok) Icon(Icons.Default.CheckCircle, contentDescription = "Tamam", tint = MaterialTheme.colorScheme.primary)
-        else FilledTonalButton(onClick = onClick) { Text("Aç") }
+        else FilledTonalButton(onClick = onClick) { Text(button) }
     }
 }
 

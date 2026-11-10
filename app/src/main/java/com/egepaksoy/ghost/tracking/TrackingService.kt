@@ -24,10 +24,8 @@ import com.egepaksoy.ghost.core.Fix
 import com.egepaksoy.ghost.data.Db
 import com.egepaksoy.ghost.data.Prefs
 import com.egepaksoy.ghost.ui.MainActivity
+import com.egepaksoy.ghost.widget.Widgets
 import kotlinx.coroutines.flow.MutableStateFlow
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 /**
  * Keeps recording while the app is closed. Android only allows that for a "foreground service",
@@ -82,6 +80,7 @@ class TrackingService : Service() {
         }
         applyRequest()
         running.value = true
+        Widgets.requestUpdate(this)
         return START_STICKY
     }
 
@@ -89,6 +88,7 @@ class TrackingService : Service() {
         handler.removeCallbacks(heartbeat)
         source.stop()
         running.value = false
+        Widgets.requestUpdate(this)
         super.onDestroy()
     }
 
@@ -127,7 +127,6 @@ class TrackingService : Service() {
             unsaved.clear()
             db.insertPoint(fix)
             lastStored = time
-            (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(NOTIFICATION_ID, notification())
         } else if (fix.accuracy <= 100f) {
             unsaved.addLast(fix)
             while (unsaved.isNotEmpty() && time - unsaved.first().time > 15 * 60_000L) unsaved.removeFirst()
@@ -135,31 +134,38 @@ class TrackingService : Service() {
         if (isMoving != wasMoving) applyRequest()
     }
 
+    /**
+     * Android requires a notification while a background location service runs. It is kept as quiet as
+     * Android allows: lowest importance (no status bar icon, collapsed, silent) and never updated.
+     * The user can turn it off completely in the app's notification settings; recording keeps going.
+     */
     private fun notification(): Notification {
         val nm = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         if (nm.getNotificationChannel(CHANNEL) == null) {
+            nm.deleteNotificationChannel("tracking")
             nm.createNotificationChannel(
-                NotificationChannel(CHANNEL, "Konum kaydı", NotificationManager.IMPORTANCE_LOW).apply { setShowBadge(false) }
+                NotificationChannel(CHANNEL, "Konum kaydı", NotificationManager.IMPORTANCE_MIN).apply {
+                    setShowBadge(false)
+                    setSound(null, null)
+                    enableVibration(false)
+                    description = "Kaydın sürdüğünü gösterir. Kapatabilirsin; kayıt etkilenmez."
+                }
             )
         }
-        val mode = if (policy.moving) "Hareket halinde" else "Sabit"
-        val last = if (lastStored > 0)
-            "Son kayıt " + DateTimeFormatter.ofPattern("HH:mm").format(Instant.ofEpochMilli(lastStored).atZone(ZoneId.systemDefault()))
-        else "İlk konum bekleniyor"
         val open = PendingIntent.getActivity(this, 0, Intent(this, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
         return NotificationCompat.Builder(this, CHANNEL)
             .setSmallIcon(R.drawable.ic_pin)
-            .setContentTitle("Konum kaydediliyor")
-            .setContentText("$last · $mode")
+            .setContentTitle("Ghost konum kaydı açık")
+            .setPriority(NotificationCompat.PRIORITY_MIN)
+            .setSilent(true)
+            .setShowWhen(false)
             .setOngoing(true)
-            .setOnlyAlertOnce(true)
             .setContentIntent(open)
-            .setForegroundServiceBehavior(NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE)
             .build()
     }
 
     companion object {
-        private const val CHANNEL = "tracking"
+        private const val CHANNEL = "tracking_quiet"
         private const val NOTIFICATION_ID = 1
 
         val running = MutableStateFlow(false)
